@@ -6,7 +6,7 @@ from models import *
 from experiment import VAEXperiment
 import torch.backends.cudnn as cudnn
 from pytorch_lightning import Trainer
-from pytorch_lightning.logging import TestTubeLogger
+from pytorch_lightning.loggers import TestTubeLogger
 
 
 parser = argparse.ArgumentParser(description='Generic runner for VAE models')
@@ -41,15 +41,13 @@ model = vae_models[config['model_params']['name']](**config['model_params'])
 experiment = VAEXperiment(model,
                           config['exp_params'])
 
-runner = Trainer(default_save_path=f"{tt_logger.save_dir}",
-                 min_nb_epochs=1,
+runner = Trainer(default_root_dir=f"{tt_logger.save_dir}",
+                 min_epochs=1,
                  logger=tt_logger,
-                 log_save_interval=100,
-                 train_percent_check=1.,
-                 val_percent_check=1.,
+                 flush_logs_every_n_steps=1000,
                  num_sanity_val_steps=5,
-                 early_stop_callback = False,
+                 benchmark=True,
                  **config['trainer_params'])
 
 print(f"======= Training {config['model_params']['name']} =======")
-runner.fit(experiment)
+runner.fit(experiment.cuda(0))

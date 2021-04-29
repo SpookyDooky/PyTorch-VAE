@@ -147,7 +147,7 @@ class VAEXperiment(pl.LightningModule):
         self.num_train_imgs = len(dataset)
         return DataLoader(dataset,
                           batch_size= self.params['batch_size'],
-                          shuffle = True,
+                          shuffle = False,
                           drop_last=True)
 
     @data_loader
@@ -160,7 +160,7 @@ class VAEXperiment(pl.LightningModule):
                                                         transform=transform,
                                                         download=False),
                                                  batch_size= 144,
-                                                 shuffle = True,
+                                                 shuffle = False,
                                                  drop_last=True)
             self.num_val_imgs = len(self.sample_dataloader)
         else:

@@ -1,7 +1,7 @@
 
 data/
 logs/
-
+dataset/
 VanillaVAE/version_0/
 
 __pycache__/

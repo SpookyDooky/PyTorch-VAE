@@ -10,9 +10,9 @@ class BetaTCVAE(BaseVAE):
     num_iter = 0 # Global static variable to keep track of iterations
 
     def __init__(self,
-                 in_channels: int,
-                 latent_dim: int,
-                 hidden_dims: List = None,
+                 in_channels: int, #Input dimension
+                 latent_dim: int, #Latent space dimension
+                 hidden_dims: List = None, #Amount of hidden layers
                  anneal_steps: int = 200,
                  alpha: float = 1.,
                  beta: float =  6.,
@@ -203,7 +203,8 @@ class BetaTCVAE(BaseVAE):
                self.alpha * mi_loss + \
                weight * (self.beta * tc_loss +
                          anneal_rate * self.gamma * kld_loss)
-        
+
+
         return {'loss': loss,
                 'Reconstruction_Loss':recons_loss,
                 'KLD':kld_loss,

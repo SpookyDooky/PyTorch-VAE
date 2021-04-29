@@ -10,10 +10,10 @@ class BetaVAE(BaseVAE):
     num_iter = 0 # Global static variable to keep track of iterations
 
     def __init__(self,
-                 in_channels: int,
-                 latent_dim: int,
-                 hidden_dims: List = None,
-                 beta: int = 4,
+                 in_channels: int,          #Input dimension
+                 latent_dim: int,           #Latent space dimension
+                 hidden_dims: List = None,  #Hidden layers
+                 beta: int = 4,             #Regularizatoin parameter
                  gamma:float = 1000.,
                  max_capacity: int = 25,
                  Capacity_max_iter: int = 1e5,
@@ -30,6 +30,7 @@ class BetaVAE(BaseVAE):
 
         modules = []
         if hidden_dims is None:
+            print("I RAN?")
             hidden_dims = [32, 64, 128, 256, 512]
 
         # Build Encoder
@@ -86,6 +87,7 @@ class BetaVAE(BaseVAE):
                             nn.Tanh())
 
     def encode(self, input: Tensor) -> List[Tensor]:
+
         """
         Encodes the input by passing through the encoder network
         and returns the latent codes.
