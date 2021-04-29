@@ -9,8 +9,8 @@ from torchvision import transforms
 import torchvision.utils as vutils
 from torchvision.datasets import CelebA
 from torch.utils.data import DataLoader
-
-
+import dill
+import pickle
 class VAEXperiment(pl.LightningModule):
 
     def __init__(self,
@@ -148,7 +148,7 @@ class VAEXperiment(pl.LightningModule):
         return DataLoader(dataset,
                           batch_size= self.params['batch_size'],
                           shuffle = False,
-                          drop_last=True)
+                          drop_last=True, prefetch_factor=4, num_workers=3, pin_memory=False)
 
     @data_loader
     def val_dataloader(self):
@@ -161,7 +161,8 @@ class VAEXperiment(pl.LightningModule):
                                                         download=False),
                                                  batch_size= 144,
                                                  shuffle = False,
-                                                 drop_last=True)
+                                                 drop_last=True, prefetch_factor=8, num_workers=3, pin_memory=False)
+
             self.num_val_imgs = len(self.sample_dataloader)
         else:
             raise ValueError('Undefined dataset type')
@@ -170,7 +171,8 @@ class VAEXperiment(pl.LightningModule):
 
     def data_transforms(self):
 
-        SetRange = transforms.Lambda(lambda X: 2 * X - 1.)
+
+        SetRange = transforms.Lambda(dummy_thicc)
         SetScale = transforms.Lambda(lambda X: X/X.sum(0).expand_as(X))
 
         if self.params['dataset'] == 'celeba':
@@ -183,3 +185,5 @@ class VAEXperiment(pl.LightningModule):
             raise ValueError('Undefined dataset type')
         return transform
 
+def dummy_thicc(x):
+    return 2 * x - 1.
