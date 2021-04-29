@@ -17,6 +17,6 @@ trainer_params:
   max_epochs: 1
 
 logging_params:
-  save_dir: "F:logs/"
+  save_dir: "logs/"
   name: "VanillaVAE"
   manual_seed: 1265
