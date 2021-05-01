@@ -7,7 +7,7 @@ from experiment import VAEXperiment
 import torch.backends.cudnn as cudnn
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TestTubeLogger
-
+import torch.multiprocessing as mp
 
 parser = argparse.ArgumentParser(description='Generic runner for VAE models')
 parser.add_argument('--config',  '-c',
@@ -49,5 +49,16 @@ runner = Trainer(default_root_dir=f"{tt_logger.save_dir}",
                  benchmark=True,
                  **config['trainer_params'])
 
-print(f"======= Training {config['model_params']['name']} =======")
-runner.fit(experiment)
+if __name__ == '__main__':
+    print(f"======= Training {config['model_params']['name']} =======")
+    num_processes = 1
+    model = experiment
+    model.share_memory()
+
+    processes = []
+    for rank in range(num_processes):
+        p = mp.Process(target=runner.fit, args=(model,))
+        p.start()
+        processes.append(p)
+    for p in processes:
+        p.join()
