@@ -9,8 +9,6 @@ from torchvision import transforms
 import torchvision.utils as vutils
 from torchvision.datasets import CelebA
 from torch.utils.data import DataLoader
-import dill
-import pickle
 
 class VAEXperiment(pl.LightningModule):
 

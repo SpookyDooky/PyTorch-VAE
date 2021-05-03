@@ -9,7 +9,7 @@ class CellDataset(Dataset):
         self.data_folder = root
         self.data = np.load(self.data_folder + 'cell_expression.npy')
         print(len(self.data))
-        self.k_highest_variance = 10
+        self.k_highest_variance = 32
         if self.k_highest_variance > 0:
             self.filter_out_insignificant()
 
@@ -20,7 +20,7 @@ class CellDataset(Dataset):
         return self.data[index]
 
     def filter_out_insignificant(self):
-        data = pd.read_csv(self.data_folder + 'gene_data2.csv')
+        data = pd.read_csv(self.data_folder + 'gene_data.csv')
         dataframe = pd.DataFrame(data, columns=['gene', 'dispersions_norm'])
         dataframe.sort_values(by=['dispersions_norm'], inplace=True, ascending=False)
         index_array = dataframe.index.to_numpy()[0:self.k_highest_variance:1]

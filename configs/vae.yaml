@@ -1,11 +1,11 @@
 model_params:
   name: 'VanillaVAE'
-  in_channels: 3
+  in_channels: 1
   latent_dim: 128
 
 exp_params:
   dataset: celldata
-  data_path: "C:\\Users\\Raymond\\Documents\\Programming\\Research project\\PyTorch-VAE\\dataset\\celldata\\"
+  data_path: "C:\\Users\\raymo\\Documents\\Programming\\researchproject\\PyTorch-VAE\\dataset\\celldata\\"
   img_size: 64
   batch_size: 4 # Better to have a square number
   LR: 0.005
@@ -17,6 +17,6 @@ trainer_params:
   max_epochs: 1
 
 logging_params:
-  save_dir: "F:logs/"
+  save_dir: "C:/logs/"
   name: "VanillaVAE"
   manual_seed: 1265

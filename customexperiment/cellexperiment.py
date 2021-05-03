@@ -1,3 +1,4 @@
+import numpy as np
 import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader
@@ -25,13 +26,11 @@ class CellExperiment(pl.LightningModule):
         return self.model(input, **kwargs)
 
     def training_step(self, batch, batch_idx, optimizer_idx=0):
+        newdata2 = batch.clone().detach().float().unsqueeze(1)
+        results = self.model(newdata2)
 
-        real_img, labels = batch
-        self.curr_device = real_img.device
-
-        results = self.forward(real_img, labels=labels)
         train_loss = self.model.loss_function(*results,
-                                              M_N=self.params['batch_size'] / self.num_train_imgs,
+                                              M_N=self.params['batch_size'] / self.sample_length,
                                               optimizer_idx=optimizer_idx,
                                               batch_idx=batch_idx)
 
@@ -42,15 +41,21 @@ class CellExperiment(pl.LightningModule):
     def validation_step(self, batch, batch_idx, optimizer_idx=0):
         # self.current_device = self.device
         print(batch)
-        results = self.forward(batch)
+        #newdata2 = batch.clone().detach().float()[None,...].reshape(-1, 1, 10)
+        newdata2 = batch.clone().detach().float().unsqueeze(1)
+        #newdata = torch.tensor(batch).float()[None, ...]
+        print(newdata2)
+        results = self.model(newdata2)
+        print('?hhhhhhhhhhhhhhhhhhhhhhh')
         val_loss = self.model.loss_function(*results,
-                                            M_N=self.params['batch_size'] / self.num_val_imgs,
+                                            M_N=self.params['batch_size'] / self.sample_length,
                                             optimizer_idx=optimizer_idx,
                                             batch_idx=batch_idx)
 
         return val_loss
 
     def validation_end(self, outputs):
+        print('????')
         avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
         tensorboard_logs = {'avg_val_loss': avg_loss}
         self.sample_images()
@@ -75,9 +80,10 @@ class CellExperiment(pl.LightningModule):
 
         dataset = CellDataset(root=self.params['data_path'], split="test")
         val_dataloader = DataLoader(dataset,
-                                    batch_size= 4,
+                                    batch_size= 64,
                                     shuffle=False,
                                     drop_last=True)
+        self.sample_length = len(val_dataloader)
         return val_dataloader
 
     def configure_optimizers(self):
