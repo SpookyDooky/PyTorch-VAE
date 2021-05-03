@@ -5,11 +5,11 @@ import pandas as pd
 
 class CellDataset(Dataset):
 
-    def __init__(self, data_folder, k_highest_variance):
-        self.data_folder = data_folder
+    def __init__(self, root: str, split: str):
+        self.data_folder = root
         self.data = np.load(self.data_folder + 'cell_expression.npy')
         print(len(self.data))
-        self.k_highest_variance = k_highest_variance
+        self.k_highest_variance = 10
         if self.k_highest_variance > 0:
             self.filter_out_insignificant()
 
@@ -29,5 +29,4 @@ class CellDataset(Dataset):
         for significant_index in np.nditer(index_array):
             temp[:,count] = self.data[:,significant_index]
             count = count + 1
-
-        print(temp[1,:])
+        self.data = temp

@@ -30,7 +30,6 @@ class BetaVAE(BaseVAE):
 
         modules = []
         if hidden_dims is None:
-            print("I RAN?")
             hidden_dims = [32, 64, 128, 256, 512]
 
         # Build Encoder

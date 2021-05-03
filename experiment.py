@@ -11,6 +11,7 @@ from torchvision.datasets import CelebA
 from torch.utils.data import DataLoader
 import dill
 import pickle
+
 class VAEXperiment(pl.LightningModule):
 
     def __init__(self,
@@ -46,6 +47,7 @@ class VAEXperiment(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx, optimizer_idx = 0):
         real_img, labels = batch
+        print(labels)
         self.curr_device = real_img.device
 
         results = self.forward(real_img, labels = labels)
