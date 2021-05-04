@@ -1,9 +1,9 @@
+import numpy as np
 import torch
 from models import BaseVAE
 from torch import nn
 from torch.nn import functional as F
 from .types_ import *
-
 
 class VanillaVAE(BaseVAE):
 
@@ -15,6 +15,10 @@ class VanillaVAE(BaseVAE):
                  **kwargs) -> None:
         super(VanillaVAE, self).__init__()
         self.latent_dim = latent_dim
+        batch_size = 32
+
+        features_used = 300
+        linear_dimension = 512
         modules = []
         if hidden_dims is None:
             hidden_dims = [32, 64, 128, 256, 512]
@@ -31,14 +35,14 @@ class VanillaVAE(BaseVAE):
             in_channels = h_dim
 
         self.encoder = nn.Sequential(*modules)
-        self.fc_mu = nn.Linear(hidden_dims[-1] * 1, latent_dim)
-        self.fc_var = nn.Linear(hidden_dims[-1] * 1, latent_dim)
+        self.fc_mu = nn.Linear(linear_dimension, latent_dim)
+        self.fc_var = nn.Linear(linear_dimension, latent_dim)
 
 
         # Build Decoder
         modules = []
 
-        self.decoder_input = nn.Linear(latent_dim, hidden_dims[-1] * 1)
+        self.decoder_input = nn.Linear(latent_dim, linear_dimension)
 
         hidden_dims.reverse()
 
@@ -71,26 +75,26 @@ class VanillaVAE(BaseVAE):
                             nn.Tanh())
 
     def encode(self, input: Tensor) -> List[Tensor]:
-        print(input.size())
+        #print(input.size())
         """
         Encodes the input by passing through the encoder network
         and returns the latent codes.
         :param input: (Tensor) Input tensor to encoder [N x C x H x W]
         :return: (Tensor) List of latent codes
         """
-        print('pls wokr')
+        #print('pls wokr')
         result = self.encoder(input)
-        print('encoding succeeded noob')
+        #print('encoding succeeded noob')
         result = torch.flatten(result, start_dim=1)
-        print('why u bully')
+        #print('why u bully')
         # Split the result into mu and var components
         # of the latent Gaussian distribution
-        print(result.size())
+        #print(result.size())
         mu = self.fc_mu(result)
-        print('more bolly')
-        print(mu.size())
+        #print('more bolly')
+        #print(mu.size())
         log_var = self.fc_var(result)
-        print('ddddd')
+        #print('ddddd')
         return [mu, log_var]
 
     def decode(self, z: Tensor) -> Tensor:
@@ -101,13 +105,14 @@ class VanillaVAE(BaseVAE):
         :return: (Tensor) [B x C x H x W]
         """
         result = self.decoder_input(z)
-        print('error1')
+        #print('error1')
         result = result.view(-1, 512, 1)
-        print('error2')
+        #print(result.size())
+        #print('error2')
         result = self.decoder(result)
-        print('error69')
+        #print('error69')
         result = self.final_layer(result)
-        print('dadhkasjhkdahjad')
+        #print('dadhkasjhkdahjad')
         return result
 
     def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
@@ -125,7 +130,7 @@ class VanillaVAE(BaseVAE):
     def forward(self, input: Tensor, **kwargs) -> List[Tensor]:
         mu, log_var = self.encode(input)
         z = self.reparameterize(mu, log_var)
-        print('????')
+        #print('????')
         return  [self.decode(z), input, mu, log_var]
 
     def loss_function(self,
@@ -138,19 +143,21 @@ class VanillaVAE(BaseVAE):
         :param kwargs:
         :return:
         """
-        print('deep')
+        #print('deep')
         recons = args[0]
         input = args[1]
         mu = args[2]
         log_var = args[3]
 
         kld_weight = kwargs['M_N'] # Account for the minibatch samples from the dataset
-        print('fuckkkk')
-        recons_loss =F.mse_loss(recons, input)
+        #print('fuckkkk')
+        #print(recons.size())
+        #print(input.size())
+        recons_loss =F.mse_loss(recons.reshape(-1,1,32), input)
 
 
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim = 1), dim = 0)
-        print('make it stop')
+        #print('make it stop')
         loss = recons_loss + kld_weight * kld_loss
         return {'loss': loss, 'Reconstruction_Loss':recons_loss, 'KLD':-kld_loss}
 

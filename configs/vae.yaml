@@ -1,22 +1,24 @@
 model_params:
   name: 'VanillaVAE'
   in_channels: 1
-  latent_dim: 128
+  latent_dim: 32
 
 exp_params:
   dataset: celldata
-  data_path: "C:\\Users\\raymo\\Documents\\Programming\\researchproject\\PyTorch-VAE\\dataset\\celldata\\"
+  #data_path: "C:\\Users\\raymo\\Documents\\Programming\\researchproject\\PyTorch-VAE\\dataset\\celldata\\"
+  data_path: "C:\\Users\\Raymond\\Documents\\Programming\\Research project\\PyTorch-VAE\\dataset\\celldata\\"
   img_size: 64
-  batch_size: 4 # Better to have a square number
+  batch_size: 400 # Better to have a square number
   LR: 0.005
   weight_decay: 0.0
   scheduler_gamma: 0.95
 
 trainer_params:
   gpus: 1
-  max_epochs: 1
+  max_epochs: 10
 
 logging_params:
-  save_dir: "C:/logs/"
+  #save_dir: "C:/logs/"
+  save_dir: "F:logs/"
   name: "VanillaVAE"
   manual_seed: 1265

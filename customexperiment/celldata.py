@@ -13,6 +13,23 @@ class CellDataset(Dataset):
         if self.k_highest_variance > 0:
             self.filter_out_insignificant()
 
+        print('I ran')
+        #k = 13
+        #temp = np.split(self.data, k)
+        #train=temp[0]
+        #for x in range(1,10):
+        #    train = np.concatenate((train, temp[x]))
+#
+        #print('making validation set')
+        #validate = temp[10]
+        #for x in range(10, 13):
+        #    validate = np.concatenate((validate, temp[x]))
+#
+        #if split == 'train':
+        #    self.data = train
+        #else:
+        #    self.data = validate
+
     def __len__(self):
         return len(self.data)
 
