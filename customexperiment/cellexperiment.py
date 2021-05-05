@@ -26,29 +26,21 @@ class CellExperiment(pl.LightningModule):
         return self.model(input, **kwargs)
 
     def training_step(self, batch, batch_idx, optimizer_idx=0):
-        newdata2 = batch.clone().detach().float().unsqueeze(1)
-        results = self.model(newdata2)
-
+        newdata2 = batch.clone().detach().float()
+        results = self.forward(newdata2)
         train_loss = self.model.loss_function(*results,
                                               M_N=self.params['batch_size'] / self.sample_length,
                                               optimizer_idx=optimizer_idx,
                                               batch_idx=batch_idx)
 
-        #print(train_loss['Reconstruction_Loss'])
         self.logger.experiment.log({key: val.item() for key, val in train_loss.items()})
 
         return train_loss
 
     def validation_step(self, batch, batch_idx, optimizer_idx=0):
         # self.current_device = self.device
-        #print(batch)
-        #newdata2 = batch.clone().detach().float()[None,...].reshape(-1, 1, 10)
-        newdata2 = batch.clone().detach().float().unsqueeze(1)
-        #newdata = torch.tensor(batch).float()[None, ...]
-        #print(newdata2)
-        results = self.model(newdata2)
-        #print("dddd")
-        #print('?hhhhhhhhhhhhhhhhhhhhhhh')
+        newdata2 = batch.clone().detach().float()
+        results = self.forward(newdata2)
         val_loss = self.model.loss_function(*results,
                                             M_N=self.params['batch_size'] / self.sample_length,
                                             optimizer_idx=optimizer_idx,
@@ -57,7 +49,6 @@ class CellExperiment(pl.LightningModule):
         return val_loss
 
     def validation_end(self, outputs):
-        #print('????')
         avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
         tensorboard_logs = {'avg_val_loss': avg_loss}
         self.sample_images()
@@ -68,10 +59,10 @@ class CellExperiment(pl.LightningModule):
         if self.params['dataset'] != 'celldata':  # Just here so that I know when I filled in the wrong dataset
             raise ValueError('Undefined dataset')
 
-        dataset = CellDataset(root=self.params['data_path'], split="train")
+        dataset = CellDataset(self.params['input_size'], root=self.params['data_path'], split="train")
         train_dataloader = DataLoader(dataset,
                                       batch_size = self.params['batch_size'],
-                                      shuffle=False,
+                                      shuffle=True,
                                       drop_last=True)  # To drop the last batch that is not completely filled
         return train_dataloader
 
@@ -80,10 +71,10 @@ class CellExperiment(pl.LightningModule):
         if self.params['dataset'] != 'celldata':
             raise ValueError('Undefined dataset')
 
-        dataset = CellDataset(root=self.params['data_path'], split="test")
+        dataset = CellDataset(self.params['input_size'], root=self.params['data_path'], split="test")
         val_dataloader = DataLoader(dataset,
-                                    batch_size= 144,
-                                    shuffle=False,
+                                    batch_size= 64,
+                                    shuffle=True,
                                     drop_last=True)
         self.sample_length = len(val_dataloader)
         return val_dataloader

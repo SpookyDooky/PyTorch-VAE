@@ -5,35 +5,24 @@ import pandas as pd
 
 class CellDataset(Dataset):
 
-    def __init__(self, root: str, split: str):
+    def __init__(self, input_size, root: str, split: str):
         self.data_folder = root
+        self.split = split
         self.data = np.load(self.data_folder + 'cell_expression.npy')
-        print(len(self.data))
-        self.k_highest_variance = 32
-        if self.k_highest_variance > 0:
-            self.filter_out_insignificant()
-
-        print('I ran')
-        #k = 13
-        #temp = np.split(self.data, k)
-        #train=temp[0]
-        #for x in range(1,10):
-        #    train = np.concatenate((train, temp[x]))
-#
-        #print('making validation set')
-        #validate = temp[10]
-        #for x in range(10, 13):
-        #    validate = np.concatenate((validate, temp[x]))
-#
-        #if split == 'train':
-        #    self.data = train
-        #else:
-        #    self.data = validate
+        self.k_highest_variance = input_size
+        self.filter_out_insignificant()
+        self.train = self.data[0:10000:1]
+        self.test = self.data[13000:16000:1]
+        self.count = 0
 
     def __len__(self):
-        return len(self.data)
+        if self.split == 'train':
+            return len(self.train)
+        else:
+            return len(self.test)
 
     def __getitem__(self, index):
+        self.count = self.count + 1
         return self.data[index]
 
     def filter_out_insignificant(self):
