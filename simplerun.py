@@ -42,7 +42,7 @@ merged_params_model = {**config['model_params'], **config['custom_params']}
 merged_params_experiment = {**config['exp_params'], **config['custom_params']}
 model = vae_models[config['model_params']['name']](**merged_params_model)
 experiment = CellExperiment(model, merged_params_experiment)
-
+print(experiment)
 runner = Trainer(default_root_dir=f"{tt_logger.save_dir}",
                  min_epochs=1,
                  logger=tt_logger,

@@ -32,8 +32,8 @@ class CellExperiment(pl.LightningModule):
                                               M_N=self.params['batch_size'] / self.sample_length,
                                               optimizer_idx=optimizer_idx,
                                               batch_idx=batch_idx)
-
-        self.logger.experiment.log({key: val.item() for key, val in train_loss.items()})
+        train_loss = {**train_loss, 'Learning-rate': torch.FloatTensor(self.schedulers[0].get_lr())}
+        self.logger.experiment.log({key: val.item() for key, val in dict(train_loss).items()})
 
         return train_loss
 
@@ -45,14 +45,10 @@ class CellExperiment(pl.LightningModule):
                                             M_N=self.params['batch_size'] / self.sample_length,
                                             optimizer_idx=optimizer_idx,
                                             batch_idx=batch_idx)
-
+        val_log = {'validation loss': val_loss['loss'].data}
+        self.logger.experiment.log({key: val.item() for key, val in dict(val_log).items()})
         return val_loss
 
-    def validation_end(self, outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        tensorboard_logs = {'avg_val_loss': avg_loss}
-        self.sample_images()
-        return {'val_loss': avg_loss, 'log': tensorboard_logs}
 
     @data_loader
     def train_dataloader(self):
@@ -73,24 +69,25 @@ class CellExperiment(pl.LightningModule):
 
         dataset = CellDataset(self.params['input_size'], root=self.params['data_path'], split="test")
         val_dataloader = DataLoader(dataset,
-                                    batch_size= 64,
-                                    shuffle=True,
+                                    batch_size= 400,
+                                    shuffle=False,
                                     drop_last=True)
         self.sample_length = len(val_dataloader)
         return val_dataloader
 
     def configure_optimizers(self):
-        current_optimizer = optim.Adam(self.model.parameters(),
-                                       lr=self.params['LR'],
-                                       weight_decay=self.params['weight_decay'])
+        print(self.model.parameters())
+        current_optimizer = optim.AdamW(self.model.parameters(),
+                                       lr=self.params['LR'], weight_decay=self.params['weight_decay'], amsgrad=True)
         optimizers = []
-        schedulers = []
+        self.schedulers = []
         optimizers.append(current_optimizer)
         try:
             if self.params['scheduler_gamma'] is not None:
-                learning_scheduler = optim.lr_scheduler.ExponentialLR(optimizers[0],
-                                                                      gamma=self.params['scheduler_gamma'])
-                schedulers.append(learning_scheduler)
-                return optimizers, schedulers
+                learning_scheduler = optim.lr_scheduler.StepLR(optimizers[0],
+                                                               step_size=12,
+                                                               gamma=self.params['scheduler_gamma'])
+                self.schedulers.append(learning_scheduler)
+                return optimizers, self.schedulers
         except:
             return optimizers

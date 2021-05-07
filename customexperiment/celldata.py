@@ -1,7 +1,8 @@
 import numpy as np
 from torch.utils.data import Dataset
 import pandas as pd
-
+import sys
+import torch
 
 class CellDataset(Dataset):
 
@@ -10,10 +11,10 @@ class CellDataset(Dataset):
         self.split = split
         self.data = np.load(self.data_folder + 'cell_expression.npy')
         self.k_highest_variance = input_size
-        self.filter_out_insignificant()
-        self.train = self.data[0:10000:1]
-        self.test = self.data[13000:16000:1]
-        self.count = 0
+        #self.filter_out_insignificant()
+        #self.normalize_data()
+        self.train = self.data[0:15000:1]
+        self.test = self.data[15000:18000:1]
 
     def __len__(self):
         if self.split == 'train':
@@ -22,8 +23,10 @@ class CellDataset(Dataset):
             return len(self.test)
 
     def __getitem__(self, index):
-        self.count = self.count + 1
-        return self.data[index]
+        if self.split == 'train':
+            return self.train[index]
+        else:
+            return self.test[index]
 
     def filter_out_insignificant(self):
         data = pd.read_csv(self.data_folder + 'gene_data.csv')
@@ -36,3 +39,16 @@ class CellDataset(Dataset):
             temp[:,count] = self.data[:,significant_index]
             count = count + 1
         self.data = temp
+
+    def normalize_data(self):
+        self.norm_values = np.zeros((len(self.data[0]), 2), dtype=float)
+        for x in range(self.k_highest_variance):
+            mean_val = torch.mean(torch.FloatTensor(self.data[0::1][x]))
+            self.norm_values[x][0] = mean_val.data
+            std = torch.std(torch.FloatTensor(self.data[0::1][x]), True)
+            self.norm_values[x][1] = std
+
+        for idx1, idx2 in np.ndenumerate(self.data):
+            self.data[idx1] = (self.data[idx1] - self.norm_values[idx1[1]][0]) / self.norm_values[idx1[1]][1]
+
+

@@ -18,39 +18,23 @@ class VanillaVAE(BaseVAE):
         self.input_size = kwargs.get('input_size')
 
         # Build Encoder
-        encode_layer = nn.Sequential(
-            nn.Linear(self.input_size, 256),
-            nn.BatchNorm1d(256),
-            nn.LeakyReLU()
-        )
         modules = []
         modules.append(nn.Sequential(
             nn.Linear(self.input_size, 256),
             nn.BatchNorm1d(256),
             nn.LeakyReLU()
         ))
-
 
         self.encoder = nn.Sequential(*modules)
+        self.fc_mu = nn.Sequential(nn.Linear(256, self.latent_dim))
+        self.fc_var = nn.Sequential(nn.Linear(256, self.latent_dim))
 
-        self.fc_mu = nn.Linear(256, self.latent_dim)
-        self.fc_var = nn.Linear(256, self.latent_dim)
-
-        # Build Decoder
-        self.decoder_input = nn.Linear(self.latent_dim, 256)
         modules = []
-        #modules.append(nn.Sequential(
-        #    nn.Linear(256, 256),
-        #    nn.BatchNorm1d(256),
-        #    nn.LeakyReLU(),
-        #))
         modules.append(nn.Sequential(
-            nn.Linear(256, self.input_size),
+            nn.Linear(latent_dim, self.input_size),
             nn.Sigmoid()
         ))
-        self.decoder = nn.Sequential(
-            *modules
-        )
+        self.decoder = nn.Sequential(*modules)
 
     def encode(self, input: Tensor) -> List[Tensor]:
         """
@@ -60,7 +44,7 @@ class VanillaVAE(BaseVAE):
         :return: (Tensor) List of latent codes
         """
         result = self.encoder(input)
-        result = torch.flatten(result, start_dim=1)
+        #result = torch.flatten(result, start_dim=1)
 
         # Split the result into mu and var components
         # of the latent Gaussian distribution
@@ -76,9 +60,9 @@ class VanillaVAE(BaseVAE):
         :param z: (Tensor) [B x D]
         :return: (Tensor) [B x C x H x W]
         """
-        result = self.decoder_input(z)
+        #result = self.decoder_input(z)
         # result = result.view(-1, 512, 2, 2)
-        result = self.decoder(result)
+        result = self.decoder(z)
         # result = self.final_layer(result)
         return result
 
@@ -116,7 +100,6 @@ class VanillaVAE(BaseVAE):
 
         kld_weight = kwargs['M_N']  # Account for the minibatch samples from the dataset
         recons_loss = F.mse_loss(recons, input)
-
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0)
 
         loss = recons_loss + kld_weight * kld_loss
