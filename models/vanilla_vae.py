@@ -17,24 +17,30 @@ class VanillaVAE(BaseVAE):
         self.latent_dim = latent_dim
         self.input_size = kwargs.get('input_size')
 
+        print(self.input_size)
         # Build Encoder
         modules = []
         modules.append(nn.Sequential(
             nn.Linear(self.input_size, 256),
             nn.BatchNorm1d(256),
-            nn.LeakyReLU()
+            #nn.LeakyReLU()
         ))
-
         self.encoder = nn.Sequential(*modules)
-        self.fc_mu = nn.Sequential(nn.Linear(256, self.latent_dim))
-        self.fc_var = nn.Sequential(nn.Linear(256, self.latent_dim))
+        self.fc_mu = nn.Linear(256, self.latent_dim)
+        self.fc_var = nn.Linear(256, self.latent_dim)
 
         modules = []
         modules.append(nn.Sequential(
-            nn.Linear(latent_dim, self.input_size),
-            nn.Sigmoid()
+            nn.Linear(self.latent_dim, 256),
+            nn.BatchNorm1d(256),
+            #nn.LeakyReLU()
+        ))
+        modules.append(nn.Sequential(
+            nn.Linear(256, self.input_size),
+            #nn.Sigmoid()
         ))
         self.decoder = nn.Sequential(*modules)
+
 
     def encode(self, input: Tensor) -> List[Tensor]:
         """
@@ -44,8 +50,7 @@ class VanillaVAE(BaseVAE):
         :return: (Tensor) List of latent codes
         """
         result = self.encoder(input)
-        #result = torch.flatten(result, start_dim=1)
-
+        result = torch.flatten(result, start_dim=1)
         # Split the result into mu and var components
         # of the latent Gaussian distribution
         mu = self.fc_mu(result)
@@ -63,7 +68,7 @@ class VanillaVAE(BaseVAE):
         #result = self.decoder_input(z)
         # result = result.view(-1, 512, 2, 2)
         result = self.decoder(z)
-        # result = self.final_layer(result)
+        #result = self.final_layer(result)
         return result
 
     def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
@@ -98,10 +103,10 @@ class VanillaVAE(BaseVAE):
         mu = args[2]
         log_var = args[3]
 
-        kld_weight = kwargs['M_N']  # Account for the minibatch samples from the dataset
+        kld_weight = kwargs['M_N']# Account for the minibatch samples from the dataset
         recons_loss = F.mse_loss(recons, input)
-        kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0)
-
+        #print(recons_loss)
+        kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim = 1), dim = 0)
         loss = recons_loss + kld_weight * kld_loss
         return {'loss': loss, 'Reconstruction_Loss': recons_loss, 'KLD': -kld_loss}
 

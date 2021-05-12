@@ -11,8 +11,9 @@ class CellDataset(Dataset):
         self.split = split
         self.data = np.load(self.data_folder + 'cell_expression.npy')
         self.k_highest_variance = input_size
-        #self.filter_out_insignificant()
+        self.filter_out_insignificant()
         #self.normalize_data()
+        self.normalize_per_feature()
         self.train = self.data[0:15000:1]
         self.test = self.data[15000:18000:1]
 
@@ -41,14 +42,23 @@ class CellDataset(Dataset):
         self.data = temp
 
     def normalize_data(self):
-        self.norm_values = np.zeros((len(self.data[0]), 2), dtype=float)
-        for x in range(self.k_highest_variance):
-            mean_val = torch.mean(torch.FloatTensor(self.data[0::1][x]))
-            self.norm_values[x][0] = mean_val.data
-            std = torch.std(torch.FloatTensor(self.data[0::1][x]), True)
-            self.norm_values[x][1] = std
+        self.lowest_value = 2.728561 # negative value but made positive here to negate negative values
+        self.biggest_value = 48.944336
+        self.data = self.data + self.lowest_value
+        self.data = self.data / self.biggest_value
+        print('done')
 
-        for idx1, idx2 in np.ndenumerate(self.data):
-            self.data[idx1] = (self.data[idx1] - self.norm_values[idx1[1]][0]) / self.norm_values[idx1[1]][1]
+    def normalize_per_feature(self):
+        #min_per_column = np.min(self.data, axis=0)
+        #for index in range(len(self.data[0])):
+        #    factor_positive = -1 * min_per_column[index]
+        #    for row_idx in range(len(self.data)):
+        #        self.data[row_idx][index] = self.data[row_idx][index] + factor_positive
 
-
+        max_per_column = np.max(self.data, axis=0)
+        for index in range(len(self.data[0])):
+            #self.data[index] = self.data[index] / max_per_column[index]
+            #for row_idx in range(len(self.data)):
+            #    self.data[row_idx][index] = self.data[row_idx][index] / max_per_column[index]
+            self.data[:,index] = self.data[:,index] / max_per_column[index]
+            #print(self.data[index])

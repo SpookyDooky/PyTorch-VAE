@@ -9,7 +9,6 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TestTubeLogger
 from customexperiment.cellexperiment import CellExperiment
 
-
 parser = argparse.ArgumentParser(description='Generic runner for VAE models')
 parser.add_argument('--config',  '-c',
                     dest="filename",
@@ -46,7 +45,7 @@ print(experiment)
 runner = Trainer(default_root_dir=f"{tt_logger.save_dir}",
                  min_epochs=1,
                  logger=tt_logger,
-                 flush_logs_every_n_steps=1000,
+                 flush_logs_every_n_steps=10000,
                  num_sanity_val_steps=5,
                  **config['trainer_params'])
 
