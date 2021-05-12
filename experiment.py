@@ -9,8 +9,7 @@ from torchvision import transforms
 import torchvision.utils as vutils
 from torchvision.datasets import CelebA
 from torch.utils.data import DataLoader
-import dill
-import pickle
+
 class VAEXperiment(pl.LightningModule):
 
     def __init__(self,
@@ -46,6 +45,7 @@ class VAEXperiment(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx, optimizer_idx = 0):
         real_img, labels = batch
+        print(labels)
         self.curr_device = real_img.device
 
         results = self.forward(real_img, labels = labels)
@@ -57,10 +57,10 @@ class VAEXperiment(pl.LightningModule):
         return val_loss
 
     def validation_end(self, outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        tensorboard_logs = {'avg_val_loss': avg_loss}
-        self.sample_images()
-        return {'val_loss': avg_loss, 'log': tensorboard_logs}
+        print(outputs['loss'])
+        #avg_loss = torch.stack([x for x in outputs['loss']]).mean()
+        #self.sample_images()
+        #return {'val_loss': avg_loss, 'log': tensorboard_logs}
 
     def sample_images(self):
         # Get sample reconstruction image
